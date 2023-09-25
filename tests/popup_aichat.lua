@@ -38,10 +38,11 @@ local opts = {
     border = borders.rounded_corners_border,
     title = { "aichat" },
     content = function()
-        -- vim.cmd("start | term cat")
-        -- vim.cmd("start | term aichat")
+        -- TODO: so in order to get what i want (have aichat stream the output) i think i need to:
+        --   1. write a wrapper script that will run aichat and pipe in the output
+        --   2. then i can run that script in a terminal
+        --   3. then i can use the wrapper script to prompt user if they want to send input back to neovim
         vim.cmd("term aichat")
-              -- 1116
         local bufnr = vim.api.nvim_get_current_buf()
         -- vim.wait(5000, function()
         --     return #vim.api.nvim_buf_get_lines(bufnr, 0, -1, false) >= 2
