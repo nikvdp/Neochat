@@ -73,41 +73,93 @@ function entry(prompt)
     open_buffer_with_text(msg)
 end
 
-function open_buffer_with_text(text, side)
-    -- Check if the buffer already exists
-    local bufname = "mybuffer"
-    local bufnr = vim.fn.bufnr(bufname)
+local M = {}
 
-    -- Set the default side to 'L' if not provided
-    side = side or 'L'
+-- Module-level variables
+M.side = 'L'
+M.bufname = "mybuffer"
 
-    -- If the buffer does not exist, create it
-    if bufnr == -1 then
-        vim.cmd("vnew " .. bufname)
-        bufnr = vim.api.nvim_get_current_buf()
-        -- Set the initial content of the buffer to the text
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {text})
-    else
-        -- If the buffer exists, make sure it's displayed in a window
-        local winnr = vim.fn.bufwinnr(bufname)
-        if winnr == -1 then
-            vim.cmd("vsplit " .. bufname)
-        else
-            vim.cmd(winnr .. "wincmd w") -- focus window
+-- Function to convert text to lines
+local function text_to_lines(text)
+    local lines
+    if type(text) == 'string' then
+        lines = vim.split(text, '\n', true)
+    elseif type(text) == 'table' then
+        for i, v in ipairs(text) do
+            if type(v) ~= 'string' then
+                error('Invalid line type at index ' .. i .. ': expected string, got ' .. type(v))
+            end
         end
-        -- Append the text to the buffer
-        vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, {text})
+        lines = text
+    else
+        error('Invalid argument type: ' .. type(text))
     end
+    return lines
+end
 
-    -- Move the window to the side specified by the 'side' variable
-    vim.cmd("wincmd " .. side)
+-- Function to create or get an existing buffer
+function M.get_buffer()
+    local bufnr = vim.fn.bufnr(M.bufname)
+    if bufnr == -1 then
+        vim.cmd("vnew " .. M.bufname)
+        bufnr = vim.api.nvim_get_current_buf()
+    end
+    return bufnr
+end
 
-    -- Set the width of the window to 20% of the screen width
-    local width = math.floor(vim.o.columns * 0.2)
+-- Function to display a buffer in a window
+function M.display_buffer()
+    local winnr = vim.fn.bufwinnr(M.bufname)
+    if winnr == -1 then
+        vim.cmd("vsplit " .. M.bufname)
+    else
+        vim.cmd(winnr .. "wincmd w") -- focus window
+    end
+    vim.cmd("wincmd " .. M.side) -- Move the window to the side
+end
+
+-- Function to set the width of a window
+function M.set_window_width(percentage)
+    local width = math.floor(vim.o.columns * percentage)
     vim.api.nvim_win_set_width(0, width)
 end
 
-open_buffer_with_text("testing23?")
+-- Function to append text to a buffer
+function M.append_to_buffer(bufnr, text)
+    local lines = text_to_lines(text)
+    vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, lines)
+end
+
+-- Function to replace the cont
+-- ents of a buffer
+function M.replace_buffer_contents(bufnr, text)
+    local lines = text_to_lines(text)
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+end
+
+-- High-level function to append text to a buffer
+function M.open_buffer_with_text(text)
+    local bufnr = M.get_buffer()
+    M.display_buffer()
+    M.set_window_width(0.2)
+    M.append_to_buffer(bufnr, text)
+end
+
+-- High-level function to replace the contents of a buffer
+function M.replace_buffer_with_text(text)
+    local bufnr = M.get_buffer()
+    M.display_buffer()
+    M.set_window_width(0.2)
+    M.replace_buffer_contents(bufnr, text)
+end
+
+-- return M
+
+
+print(vim.inspect(text_to_lines("12")))
+M.open_buffer_with_text("testing2345?")
+M.replace_buffer_with_text({'one', 'two', 'three'})
+
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua entry(<q-args>)')
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua AichatSelectedText(<q-args>)')
 -- print(GetVisualSelection())
