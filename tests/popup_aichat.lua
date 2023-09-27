@@ -73,30 +73,41 @@ function entry(prompt)
     open_buffer_with_text(msg)
 end
 
-function open_buffer_with_text(text)
+function open_buffer_with_text(text, side)
     -- Check if the buffer already exists
     local bufname = "mybuffer"
     local bufnr = vim.fn.bufnr(bufname)
+
+    -- Set the default side to 'L' if not provided
+    side = side or 'L'
 
     -- If the buffer does not exist, create it
     if bufnr == -1 then
         vim.cmd("vnew " .. bufname)
         bufnr = vim.api.nvim_get_current_buf()
+        -- Set the initial content of the buffer to the text
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {text})
     else
         -- If the buffer exists, make sure it's displayed in a window
         local winnr = vim.fn.bufwinnr(bufname)
         if winnr == -1 then
             vim.cmd("vsplit " .. bufname)
         else
-            vim.cmd(winnr .. "wincmd w")
+            vim.cmd(winnr .. "wincmd w") -- focus window
         end
+        -- Append the text to the buffer
+        vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, {text})
     end
 
-    -- Add the text to the buffer
-    vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, {text})
+    -- Move the window to the side specified by the 'side' variable
+    vim.cmd("wincmd " .. side)
+
+    -- Set the width of the window to 20% of the screen width
+    local width = math.floor(vim.o.columns * 0.2)
+    vim.api.nvim_win_set_width(0, width)
 end
 
-open_buffer_with_text("testing")
+open_buffer_with_text("testing23?")
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua entry(<q-args>)')
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua AichatSelectedText(<q-args>)')
 -- print(GetVisualSelection())
