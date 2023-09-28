@@ -43,10 +43,12 @@ function Aichat(input, options)
     local stderr_output = ""
 
     options = options or {}
+    options.sync = options.sync or true
     options = {
         args = options.args or {},
         timeout = options.timeout or 30000,
         on_stdout = options.on_stdout or function(err, data)
+                print("OUTPUT! " .. data)
                 output = output .. data
             end,
         on_stderr = options.on_stderr or function(err, data)
@@ -64,7 +66,9 @@ function Aichat(input, options)
     }
 
     job:start()
-    job:wait(options.timeout)
+    if options.sync then
+        job:wait(options.timeout)
+    end
 
     return output
 end
@@ -109,7 +113,7 @@ local M = {}
 
 -- Module-level variables
 M.side = "L"
-M.bufname = "mybuffer"
+M.bufname = "cursed.nvim"
 
 -- Function to convert text to lines
 local function text_to_lines(text)
@@ -162,8 +166,7 @@ function M.append_to_buffer(bufnr, text)
     vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, lines)
 end
 
--- Function to replace the cont
--- ents of a buffer
+-- Function to replace the contents of a buffer
 function M.replace_buffer_contents(bufnr, text)
     local lines = text_to_lines(text)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
@@ -174,7 +177,23 @@ function M.open_buffer_with_text(text)
     local bufnr = M.get_buffer()
     M.display_buffer()
     M.set_window_width(0.2)
-    M.append_to_buffer(bufnr, text)
+    if M.buf_empty() then
+        -- text = "empty " .. tostring(#vim.api.nvim_buf_get_lines(bufnr, 0, -1, false))
+        M.replace_buffer_with_text(text)
+    else
+        -- text = "not empty " .. tostring(#vim.api.nvim_buf_get_lines(bufnr, 0, -1, false))
+        M.append_to_buffer(bufnr, text)
+    end
+end
+
+function M.buf_empty()
+    local bufnr = M.get_buffer()
+    return #table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) == 0
+end
+
+function M.clear_buffer()
+    local bufnr = M.get_buffer()
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
 end
 
 -- High-level function to replace the contents of a buffer
@@ -185,11 +204,80 @@ function M.replace_buffer_with_text(text)
     M.replace_buffer_contents(bufnr, text)
 end
 
--- return M
+local async = require("plenary.async")
+local await = async.await
+local async_void = async.void
 
-print(Aichat("count backwards from 10 in chinese characters"))
+local append_to_buffer_async =
+    async_void(
+    function(bufnr, text)
+        local lines = text_to_lines(text)
+        vim.schedule(
+            function()
+                vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, lines)
+                vim.cmd.redraw()
+            end
+        )
+    end
+)
+
+local AichatToBuffer =
+    async_void(
+    function(input, options)
+        local accumulated_output = {}
+        local bufnr = M.get_buffer()
+        M.clear_buffer()
+        -- M.replace_buffer_with_text("")
+        options = options or {sync = false}
+        options.on_stdout = function(err, data)
+            if data and data:match("%S") then
+                table.insert(accumulated_output, data)
+                vim.schedule(
+                    function()
+                        M.open_buffer_with_text(data)
+                    end
+                )
+                print("::: " .. data)
+            end
+        end
+        Aichat(input, options)
+    end
+)
+
+-- return M
+local bufnr = M.get_buffer()
+-- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
+
+M.clear_buffer()
+
+-- function manual()
+--     M.replace_buffer_with_text("first")
+--     M.append_to_buffer(bufnr, "second")
+-- end
+-- -- manual()
+-- function witho()
+--     M.open_buffer_with_text("what")
+--     M.open_buffer_with_text("the ")
+--     M.open_buffer_with_text("hell")
+-- end
+-- witho()
+-- print(M.buf_empty())
+-- print(#table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)))
+
+-- M.open_buffer_with_text(tostring(#vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)))
+
+-- vim.schedule(
+--     function()
+--         M.append_to_buffer(bufnr, "hrr")
+--     end
+-- )
+-- M.open_buffer_with_text("what")
+-- M.open_buffer_with_text("the ")
+-- M.open_buffer_with_text("hell")
+
+-- print(AichatToBuffer("count backwards from 30 in french (eg un deux trois), one number per line"))
+AichatToBuffer("write a hilarious rap song about the kinds of people who tweet in the nude")
 -- print(vim.inspect(text_to_lines("12")))
--- M.open_buffer_with_text("testing2345?")
 -- M.replace_buffer_with_text({'one', 'two', 'three'})
 
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua entry(<q-args>)')
