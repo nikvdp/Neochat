@@ -15,7 +15,7 @@ function SendToReplTerm(repl_term_chan_id, options)
 
     local to_send = text_to_send
     if to_send == '' then
-        to_send = _G.GetVisualSelection()
+        to_send = GetVisualSelection()
     end
 
     if #vim.split(to_send, "\n") == 1 or not use_bracketed_paste then
@@ -32,15 +32,43 @@ function SendToReplTerm(repl_term_chan_id, options)
     end
 end
 
+
+local Job = require 'plenary.job'
+
+
+function Aichat(input, options)
+    local output = ""
+    local stderr_output = ""
+
+    options = options or {}
+    options = {
+        args = options.args or {},
+        timeout = options.timeout or 30000,
+        on_stdout = options.on_stdout or function(err, data) output = output .. data end,
+        on_stderr = options.on_stderr or function(err, data) stderr_output = stderr_output .. data end,
+    }
+
+    local job = Job:new {
+        command = 'aichat',
+        args = options.args,
+        writer = input,
+        on_stdout = options.on_stdout,
+        on_stderr = options.on_stderr,
+    }
+
+    job:start()
+    job:wait(options.timeout)
+
+    return output
+end
+
+
+
+
 function AichatSelectedText(prompt)
-    -- Get the current visual selection
     local selected_text = GetVisualSelection()
+    local output = Aichat(prompt, selected_text)
 
-    -- Run the selected text through the tac command with the prompt argument
-    local cmd = 'echo ' .. vim.fn.shellescape(selected_text) .. ' | aichat ' .. vim.fn.shellescape(prompt)
-    local output = vim.fn.system(cmd)
-
-    -- Replace the selected text with the output of the command
     vim.cmd("normal! gv" .. "d")
     vim.cmd("normal! i" .. output)
 end
@@ -66,6 +94,8 @@ function GetVisualSelection()
     lines[1] = lines[1]:sub(column_start)
     return table.concat(lines, "\n")
 end
+
+
 
 function entry(prompt) 
     local msg = "prompt was: " .. prompt .. "\n"
@@ -155,10 +185,10 @@ end
 
 -- return M
 
-
-print(vim.inspect(text_to_lines("12")))
-M.open_buffer_with_text("testing2345?")
-M.replace_buffer_with_text({'one', 'two', 'three'})
+print(Aichat("count backwards from 10 in chinese characters"))
+-- print(vim.inspect(text_to_lines("12")))
+-- M.open_buffer_with_text("testing2345?")
+-- M.replace_buffer_with_text({'one', 'two', 'three'})
 
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua entry(<q-args>)')
 -- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua AichatSelectedText(<q-args>)')
