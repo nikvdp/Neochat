@@ -1,5 +1,4 @@
-local popcorn = require "popcorn"
-local borders = require "popcorn.borders"
+local M = {}
 
 function SendToReplTerm(repl_term_chan_id, options)
     if type(options) == "string" then
@@ -109,7 +108,6 @@ function entry(prompt)
     open_buffer_with_text(msg)
 end
 
-local M = {}
 
 -- Module-level variables
 M.side = "L"
@@ -244,83 +242,4 @@ local AichatToBuffer =
     end
 )
 
--- return M
-local bufnr = M.get_buffer()
--- vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
-
-M.clear_buffer()
-
--- function manual()
---     M.replace_buffer_with_text("first")
---     M.append_to_buffer(bufnr, "second")
--- end
--- -- manual()
--- function witho()
---     M.open_buffer_with_text("what")
---     M.open_buffer_with_text("the ")
---     M.open_buffer_with_text("hell")
--- end
--- witho()
--- print(M.buf_empty())
--- print(#table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)))
-
--- M.open_buffer_with_text(tostring(#vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)))
-
--- vim.schedule(
---     function()
---         M.append_to_buffer(bufnr, "hrr")
---     end
--- )
--- M.open_buffer_with_text("what")
--- M.open_buffer_with_text("the ")
--- M.open_buffer_with_text("hell")
-
--- print(AichatToBuffer("count backwards from 30 in french (eg un deux trois), one number per line"))
-AichatToBuffer("write a hilarious rap song about the kinds of people who tweet in the nude")
--- print(vim.inspect(text_to_lines("12")))
--- M.replace_buffer_with_text({'one', 'two', 'three'})
-
--- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua entry(<q-args>)')
--- vim.api.nvim_command('command! -range=% -nargs=1 Aichat lua AichatSelectedText(<q-args>)')
--- print(GetVisualSelection())
-
--- local opts = {
---     width = 100,
---     height = 70,
---     border = borders.rounded_corners_border,
---     title = { "aichat" },
---     content = GetVisualSelection()
---     -- content = function()
---     --     -- TODO: so in order to get what i want (have aichat stream the output) i think i need to:
---     --     --   1. write a wrapper script that will run aichat and pipe in the output
---     --     --   2. then i can run that script in a terminal
---     --     --   3. then i can use the wrapper script to prompt user if they want to send input back to neovim
---     --     vim.cmd("term aichat")
---     --     local bufnr = vim.api.nvim_get_current_buf()
---     --     -- vim.wait(5000, function()
---     --     --     return #vim.api.nvim_buf_get_lines(bufnr, 0, -1, false) >= 2
---     --     -- end)
---     --     vim.wait(5000, function()
---     --         local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
---     --         for _, line in ipairs(lines) do
---     --             if line:find("Welcome to aichat") then
---     --                 return true
---     --             end
---     --         end
---     --         return false
---     --     end)
---     --
---     --     -- vim.wait(1000)
---     --
---     --     SendToReplTerm(vim.b.terminal_job_id, "hello there")
---     --     -- vim.g.repl_term_id = vim.b.terminal_job_id
---     --     -- vim.fn.chansend(vim.b.terminal_job_id, "hello\n")
---     --     -- vim.wait(500)
---     --     -- vim.fn.chansend(vim.b.terminal_job_id, "\n")
---     --     -- vim.fn.SendToReplTerm(vim.b.terminal_job_id, "heyo!!")
---     -- end
--- }
---
--- popcorn:new(opts):pop()
---
---
+return M
