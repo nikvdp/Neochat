@@ -75,4 +75,7 @@ local function text_to_lines(text)
     return lines
 end
 
+function util.vimecho(text)
+    vim.cmd([[echom "]] .. text .. [["]])
+end
 return util
