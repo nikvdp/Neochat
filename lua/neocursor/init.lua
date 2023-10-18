@@ -107,6 +107,28 @@ function M.aichat_wrapper(args)
     end
 end
 
+function M.extract_markdown_content(file_path)
+    local file = io.open(file_path, "r")
+    if not file then return nil end
+    
+    local content = file:read("*all")
+    file:close()
+    
+    local pattern = "```.-\n(.-)```"
+    local last_block = nil
+    
+    for block in string.gmatch(content, pattern) do
+        last_block = block
+    end
+    
+    if last_block then
+        return last_block
+    else
+        return content
+    end
+end
+
+
 vim.cmd([[
   command! -nargs=* -range Aichat lua require'neocursor'.aichat_wrapper(<q-args>)
 ]])
