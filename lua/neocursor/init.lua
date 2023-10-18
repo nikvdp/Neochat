@@ -11,25 +11,8 @@ local GetVisualSelection = require("neocursor.util").GetVisualSelection
 local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
 local vimecho = require("neocursor.util").vimecho
 
-function M.Aichat(input)
-    local start_line, end_line = GetVisualSelectionLineNos()
-    local bufnr = vim.api.nvim_get_current_buf()
-
-    vim.cmd("wincmd n")
-    vim.cmd("wincmd L")
-
-    local input_file = "/tmp/aichat_input"
-    local output_file = "/tmp/aichat_output"
-    local script_file = "/tmp/aichat_script.sh"
-    local file = io.open(input_file, "w")
-    file:write(input)
-    file:close()
-
-    -- write a small wrapper script to run the aichat command to
-    -- pass the input file to aichat over stdin and give a different
-    -- exit status depending on if user hits Y or N after the result
-    local script =
-        string.format(
+function M.gen_aichat_wrapper_script(input_file, output_file)
+    return string.format(
         [==[
 #!/bin/bash
 aichat < "%s" | tee "%s"
@@ -54,6 +37,38 @@ done
         input_file,
         output_file
     )
+end
+
+function M.Aichat(input)
+    local start_line, end_line = GetVisualSelectionLineNos()
+    local bufnr = vim.api.nvim_get_current_buf()
+
+    vim.cmd("wincmd n")
+    vim.cmd("wincmd L")
+
+    local input_file = "/tmp/aichat_input"
+    local output_file = "/tmp/aichat_output"
+    local script_file = "/tmp/aichat_script.sh"
+    local file = nil
+    local script = nil
+
+    if input then
+        script = M.gen_aichat_wrapper_script(input_file, output_file)
+        file = io.open(input_file, "w")
+        -- TODO: generate an alternate wrapper script that doesn't pass in user input
+        file:write(input)
+        file:close()
+        local file = nil
+        if input_file ~= nil then
+            file = io.open(input_file, "w")
+            file:write(input)
+            file:close()
+        end
+    else
+        script = [[
+#!/bin/bash
+exec aichat]]
+    end
 
     file = io.open(script_file, "w")
     file:write(script)
