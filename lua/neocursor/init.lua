@@ -25,11 +25,10 @@ function M.Aichat(input)
     -- pass the input file to aichat over stdin and give a different
     -- exit status depending on if user hits Y or N after the result
     local script =
+        string.format(
         [==[
 #!/bin/bash
-aichat < "]==] ..
-        input_file ..
-            [==["
+aichat < "%s"
 cols="$(tput cols)"
 msg="Keep Y/N? "
 y_color=$(tput setaf 2)
@@ -37,7 +36,7 @@ n_color=$(tput setaf 1)
 reset_color=$(tput sgr0)
 msg_colorized="Keep ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
 padding=$((($cols - ${#msg}) / 2))
-printf "%${padding}s" ""
+printf "%%${padding}s" ""
 echo -n -e "$msg_colorized"
 while true; do
     read -r -n 1 key
@@ -47,7 +46,9 @@ while true; do
         exit 1
     fi
 done
-]==]
+]==],
+        input_file
+    )
 
     file = io.open(script_file, "w")
     file:write(script)
