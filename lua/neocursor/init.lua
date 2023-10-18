@@ -79,7 +79,7 @@ end
 
 function M.aichat_wrapper(args)
     local selection = GetVisualSelection()
-    if args == "" then
+    if args == nil or args == "" then
         -- No args and not in visual mode, so just open up a chat win
         M.Aichat()
     else
@@ -94,7 +94,7 @@ function M.aichat_wrapper(args)
                     GetVisualSelection(),
                     "\n```\n\nInstruction: \n\n```\n",
                     args,
-                    "\n```\n",
+                    "\n```\n"
                 }
             )
 

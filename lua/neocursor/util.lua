@@ -78,4 +78,5 @@ end
 function util.vimecho(text)
     vim.cmd([[echom "]] .. text .. [["]])
 end
+
 return util
