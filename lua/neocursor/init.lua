@@ -16,6 +16,7 @@ function M.Aichat(input)
     local bufnr = vim.api.nvim_get_current_buf()
 
     local input_file = "/tmp/aichat_input"
+    local output_file = "/tmp/aichat_output"
     local script_file = "/tmp/aichat_script.sh"
     local file = io.open(input_file, "w")
     file:write(input)
@@ -28,7 +29,7 @@ function M.Aichat(input)
         string.format(
         [==[
 #!/bin/bash
-aichat < "%s"
+aichat < "%s" | tee "%s"
 cols="$(tput cols)"
 msg="Keep Y/N? "
 y_color=$(tput setaf 2)
@@ -47,7 +48,8 @@ while true; do
     fi
 done
 ]==],
-        input_file
+        input_file,
+        output_file
     )
 
     file = io.open(script_file, "w")
