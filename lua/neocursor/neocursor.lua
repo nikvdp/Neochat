@@ -1,9 +1,10 @@
 local M = {}
 -- Module-level variables
 M.side = "L"
-M.bufname = "cursed.nvim"
+M.bufname = "neocursor"
 
 local Job = require "plenary.job"
+local GetVisualSelection = require("neocursor.util").GetVisualSelection
 
 function Aichat(input, options)
     local output = ""
