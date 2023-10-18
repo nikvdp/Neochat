@@ -35,19 +35,30 @@ function util.SendToReplTerm(repl_term_chan_id, options)
     end
 end
 
-function util.GetVisualSelection()
-    -- from https://stackoverflow.com/a/47051271
-    local line_start, column_start, line_end, column_end
+function util.GetVisualSelectionLineNos()
+    local line_start, line_end
     if vim.fn.mode() == "v" then
-        line_start, column_start = unpack(vim.fn.getpos("v"), 2)
-        line_end, column_end = unpack(vim.fn.getpos("."), 2)
+        line_start, line_end = vim.fn.getpos("v")[2], vim.fn.getpos(".")[2]
     else
-        line_start, column_start = unpack(vim.fn.getpos("'<"), 2)
-        line_end, column_end = unpack(vim.fn.getpos("'>"), 2)
+        line_start, line_end = vim.fn.getpos("'<")[2], vim.fn.getpos("'>")[2]
     end
+    return line_start, line_end
+end
+
+function util.GetVisualSelection()
+    local line_start, line_end = util.GetVisualSelectionLineNos()
+    local column_start, column_end
+
+    if vim.fn.mode() == "v" then
+        column_start, column_end = vim.fn.getpos("v")[3], vim.fn.getpos(".")[3]
+    else
+        column_start, column_end = vim.fn.getpos("'<")[3], vim.fn.getpos("'>")[3]
+    end
+
     if (vim.fn.line2byte(line_start) + column_start) > (vim.fn.line2byte(line_end) + column_end) then
-        line_start, column_start, line_end, column_end = line_end, column_end, line_start, column_start
+        column_start, column_end = column_end, column_start
     end
+
     local lines = vim.fn.getline(line_start, line_end)
     if #lines == 0 then
         return ""
