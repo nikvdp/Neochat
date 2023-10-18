@@ -178,4 +178,17 @@ local AichatToBuffer =
     end
 )
 
+function M.aichat_wrapper(args)
+    if args == "" then
+        Aichat(GetVisualSelection())
+    else
+        Aichat(args)
+    end
+end
+
+vim.cmd([[
+  command! -nargs=* Aichat lua require'neocursor'.aichat_wrapper(<q-args>)
+]])
+
+
 return M
