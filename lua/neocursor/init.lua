@@ -8,12 +8,15 @@ local async = require("plenary.async")
 local await = async.await
 local async_void = async.void
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
+local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
 local vimecho = require("neocursor.util").vimecho
 
 function M.Aichat(input)
+    local start_line, end_line = GetVisualSelectionLineNos()
+    local bufnr = vim.api.nvim_get_current_buf()
+
     vim.cmd("wincmd n")
     vim.cmd("wincmd L")
-    local bufnr = vim.api.nvim_get_current_buf()
 
     local input_file = "/tmp/aichat_input"
     local output_file = "/tmp/aichat_output"
@@ -62,8 +65,8 @@ done
         {
             on_exit = function(job_id, exit_code, event)
                 if exit_code == 0 then
-                    -- print("Y!!")
-                    vimecho("Y!")
+                    local output = M.extract_markdown_content(output_file)
+                    M.replace_lines(start_line, end_line, output, bufnr)
                 else
                     -- print("NNN!!!")
                     vimecho("N :(")
@@ -75,6 +78,12 @@ done
             stderr_buffered = true
         }
     )
+end
+
+-- Function to replace specified lines in a specified buffer
+function M.replace_lines(start_line, end_line, new_lines, bufnr)
+    bufnr = bufnr or 0 -- use the current buffer if none is specified
+    vim.api.nvim_buf_set_lines(bufnr, start_line, end_line - 1, false, vim.split(new_lines, "\n"))
 end
 
 function M.aichat_wrapper(args)
