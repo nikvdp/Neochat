@@ -1,4 +1,6 @@
-function SendToReplTerm(repl_term_chan_id, options)
+local util = {}
+
+function util.SendToReplTerm(repl_term_chan_id, options)
     if type(options) == "string" then
         options = {text_to_send = options}
     end
@@ -33,7 +35,7 @@ function SendToReplTerm(repl_term_chan_id, options)
     end
 end
 
-function GetVisualSelection()
+function util.GetVisualSelection()
     -- from https://stackoverflow.com/a/47051271
     local line_start, column_start, line_end, column_end
     if vim.fn.mode() == "v" then
@@ -54,3 +56,5 @@ function GetVisualSelection()
     lines[1] = lines[1]:sub(column_start)
     return table.concat(lines, "\n")
 end
+
+return util
