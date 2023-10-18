@@ -28,8 +28,8 @@ function M.Aichat(input)
         [==[
 #!/bin/bash
 aichat < "]==] ..
-    input_file ..
-        [==["
+        input_file ..
+            [==["
 cols="$(tput cols)"
 msg="Keep Y/N? "
 y_color=$(tput setaf 2)
@@ -75,17 +75,32 @@ done
 end
 
 function M.aichat_wrapper(args)
+    local selection = GetVisualSelection()
     if args == "" then
-        if vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == "^V" then
-            -- Visual mode and no args
-            M.Aichat(GetVisualSelection())
-        else
-            -- No args and not in visual mode
-            M.Aichat()
-        end
+        -- No args and not in visual mode, so just open up a chat win
+        M.Aichat()
     else
-        -- Args provided
-        M.Aichat(args)
+        if string.len(selection) then
+            -- if vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == "^V" then
+            -- Visual mode and args, so marshall the visually selected
+            -- text into the prompt
+            local prompt =
+                table.concat(
+                {
+                    "You are a coding expert. I will provide you with code and instructions, reply with the updated code and nothing else. Do not use markdown backticks (```) in your reply.\n\n Code: \n\n```\n",
+                    GetVisualSelection(),
+                    "\n```\n\nInstruction: \n\n```\n",
+                    args,
+                    "\n```\n",
+                }
+            )
+
+            M.Aichat(prompt)
+        else
+            -- Args provided, but no visual mode, so just start aichat
+            -- with the provided prompt
+            M.Aichat(args)
+        end
     end
 end
 
