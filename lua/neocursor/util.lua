@@ -57,4 +57,22 @@ function util.GetVisualSelection()
     return table.concat(lines, "\n")
 end
 
+-- Function to convert text to a lua table of lines
+local function text_to_lines(text)
+    local lines
+    if type(text) == "string" then
+        lines = vim.split(text, "\n", true)
+    elseif type(text) == "table" then
+        for i, v in ipairs(text) do
+            if type(v) ~= "string" then
+                error("Invalid line type at index " .. i .. ": expected string, got " .. type(v))
+            end
+        end
+        lines = text
+    else
+        error("Invalid argument type: " .. type(text))
+    end
+    return lines
+end
+
 return util
