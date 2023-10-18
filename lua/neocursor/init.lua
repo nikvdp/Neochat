@@ -4,6 +4,9 @@ M.side = "L"
 M.bufname = "neocursor"
 
 local Job = require "plenary.job"
+local async = require("plenary.async")
+local await = async.await
+local async_void = async.void
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
 
 function Aichat(input, options)
@@ -138,11 +141,8 @@ function M.replace_buffer_with_text(text)
     M.replace_buffer_contents(bufnr, text)
 end
 
-local async = require("plenary.async")
-local await = async.await
-local async_void = async.void
 
-local append_to_buffer_async =
+local append_to_buffer_async = -- TODO: delete?
     async_void(
     function(bufnr, text)
         local lines = text_to_lines(text)
@@ -155,7 +155,7 @@ local append_to_buffer_async =
     end
 )
 
-local AichatToBuffer =
+local AichatToBuffer = -- TODO: delete?
     async_void(
     function(input, options)
         local accumulated_output = {}
