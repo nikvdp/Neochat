@@ -93,7 +93,7 @@ function M.Aichat(input)
     local script = nil
 
     if input then
-        script = M.gen_aichat_wrapper_script(input_file, {message = "Insert into chat"})
+        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace with this"})
         file = io.open(input_file, "w")
         -- TODO: generate an alternate wrapper script that doesn't pass in user input
         file:write(input)
@@ -124,7 +124,7 @@ exec aichat]]
                     M.replace_lines(start_line, end_line, output, bufnr)
                 else
                     -- print("NNN!!!")
-                    vimecho("N :(")
+                    -- vimecho("N :(")
                 end
 
                 -- clean up temporary files
