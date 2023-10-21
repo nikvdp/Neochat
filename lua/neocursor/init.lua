@@ -133,17 +133,25 @@ function M.aichat_wrapper(args)
     end
 end
 
-function M.extract_markdown_content(file_path)
-    local file = io.open(file_path, "r")
-    if not file then
-        return nil
-    end
+function M.get_buf_text(bufnr)
+    -- bufnr is the buffer number. If nil, the current buffer is used.
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
 
-    local content = file:read("*all")
-    file:close()
+    -- Get the number of lines in the buffer
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
 
-    local pattern = "```.-\n(.-)```"
+    -- Get all lines from the buffer
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, line_count, false)
+
+    -- Join all lines into a single string
+    local text = table.concat(lines, "\n")
+
+    return text
+end
+
+function M.extract_last_backtick_value(content)
     local last_block = nil
+    local pattern = "```.-\n(.-)```"
 
     for block in string.gmatch(content, pattern) do
         last_block = block
@@ -160,6 +168,27 @@ function M.extract_markdown_content(file_path)
         output = content
     end
     return trim(output)
+end
+
+function M.read_file(file_path)
+    local file = io.open(file_path, "r")
+    if not file then
+        return nil
+    end
+
+    local content = file:read("*all")
+    file:close()
+
+    return content
+end
+
+function M.extract_markdown_content(file_path)
+    local content = M.read_file(file_path)
+    if not content then
+        return nil
+    end
+
+    return M.extract_last_backtick_value(content)
 end
 
 vim.cmd([[
