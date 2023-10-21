@@ -90,4 +90,22 @@ function util.vimecho(text)
     vim.cmd([[echom "]] .. text .. [["]])
 end
 
+-- dedent function similar to python's dedent. from [1], see license in [2]
+-- [1]: https://dev.fandom.com/wiki/Module:Unindent
+-- [2]: see LICENSES.txt in this folder
+function util.dedent(str)
+    str = str:gsub(" +$", ""):gsub("^ +", "") -- remove spaces at start and end
+    local level = math.huge
+    local minPrefix = ""
+    local len
+    for prefix in str:gmatch("\n( +)") do
+        len = #prefix
+        if len < level then
+            level = len
+            minPrefix = prefix
+        end
+    end
+    return (str:gsub("\n" .. minPrefix, "\n"):gsub("\n$", ""))
+end
+
 return util
