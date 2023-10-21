@@ -42,6 +42,37 @@ function M.gen_aichat_wrapper_script(input_file, output_file)
     )
 end
 
+function M.get_openai_api_key()
+    return vim.fn.getenv("OPENAI_KEY")
+end
+
+function M.create_tmp_aichat_dir()
+    local tmp_dir = vim.fn.tempname()
+    vim.fn.mkdir(tmp_dir, "p")
+    local openai_key = M.get_openai_api_key()
+    local config_yml =
+        string.format(
+        util.dedent(
+            [==[
+            api_key: %s
+
+            model: gpt-4
+            save: true
+            highlight: true 
+            temperature: 0
+            light_theme: true
+            conversation_first: true
+
+            ]==]
+        ),
+        openai_key
+    )
+    local cfg_file = io.open(util.join_path(tmp_dir, "config.yaml"), "w")
+    cfg_file:write(config_yml)
+    cfg_file:close()
+    return tmp_dir
+end
+
 function M.Aichat(input)
     local start_line, end_line = GetVisualSelectionLineNos()
     local bufnr = vim.api.nvim_get_current_buf()
@@ -49,8 +80,12 @@ function M.Aichat(input)
     vim.cmd("wincmd n")
     vim.cmd(string.format("wincmd %s", M.side))
 
+    local aichat_cfg_dir = M.create_tmp_aichat_dir()
+    vim.fn.setenv("AICHAT_CONFIG_DIR", aichat_cfg_dir)
     local input_file = "/tmp/aichat_input"
-    local output_file = "/Users/nik/Library/Application Support/aichat/messages.md"
+    -- aichat writes it's msg history into messages.md, so we can read
+    -- the chat output from here later
+    local output_file = util.join_path(aichat_cfg_dir, "messages.md")
     local script_file = "/tmp/aichat_script.sh"
     local file = nil
     local script = nil
