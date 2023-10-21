@@ -131,11 +131,70 @@ exec aichat]]
                 os.remove(input_file)
                 os.remove(script_file)
                 util.rmdir(aichat_cfg_dir)
+
+                local orig_win = M.get_visible_window_number(bufnr)
+                M.indent_lines(start_line, end_line, orig_win)
             end,
             stdout_buffered = true,
             stderr_buffered = true
         }
     )
+end
+
+--- Indents lines in a specified window.
+--
+-- @param start_line The line to start indenting from.
+-- @param end_line The line to end indenting at.
+-- @param win_num The window number to perform the indentation in.
+-- @param options A table of options. Can contain one optional value 'focus_win'. If 'focus_win' is true (which is the default), the function will focus on the specified window. If 'focus_win' is false, the function will return to the originating window after the indentation is complete.
+-- @return nil
+function M.indent_lines(start_line, end_line, win_num, options)
+    options = options or {focus_win = true}
+    local win_id = M.get_window_id(win_num)
+    vim.cmd(string.format("%swincmd w", win_num))
+
+    -- indent the lines by visually selecting them, (using <num>G)
+    -- and then hitting =
+    vim.cmd(string.format("normal! %sGV%sG=", start_line, end_line))
+
+    if not options.focus_win then
+        vim.cmd("wincmd p")
+    end
+end
+
+function M.get_window_id(win_number)
+    -- Get the list of windows
+    local windows = vim.api.nvim_tabpage_list_wins(0)
+
+    -- Iterate over each window
+    for _, win in ipairs(windows) do
+        -- If the window number matches the given window number, return the window id
+        if vim.api.nvim_win_get_number(win) == win_number then
+            return win
+        end
+    end
+
+    -- If no matching window number was found, return nil
+    return nil
+end
+
+function M.get_visible_window_number(buffer_id)
+    -- Get the list of windows in the current tab
+    local windows = vim.api.nvim_tabpage_list_wins(0)
+
+    -- Iterate over each window
+    for _, win in ipairs(windows) do
+        -- Get the buffer id for the current window
+        local buf = vim.api.nvim_win_get_buf(win)
+
+        -- If the buffer id matches the given buffer id, return the window number
+        if buf == buffer_id then
+            return vim.api.nvim_win_get_number(win)
+        end
+    end
+
+    -- If no matching buffer id was found, return nil
+    return nil
 end
 
 function M.replace_lines(start_line, end_line, new_lines, bufnr)
