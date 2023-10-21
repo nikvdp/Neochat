@@ -14,9 +14,10 @@ local vimecho = require("neocursor.util").vimecho
 
 function M.gen_aichat_wrapper_script(input_file, output_file)
     return util.dedent(
-        string.format( [==[
+        string.format(
+            [==[
                 #!/bin/bash
-                aichat < "%s" | tee "%s"
+                aichat < "%s"
                 cols="$(tput cols)"
                 msg="Keep Y/N? "
                 y_color=$(tput setaf 2)
@@ -25,6 +26,7 @@ function M.gen_aichat_wrapper_script(input_file, output_file)
                 msg_colorized="Keep ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
                 padding=$((($cols - ${#msg}) / 2))
                 printf "%%${padding}s" ""
+                echo
                 echo -n -e "$msg_colorized"
                 while true; do
                     read -r -n 1 key
@@ -35,8 +37,7 @@ function M.gen_aichat_wrapper_script(input_file, output_file)
                     fi
                 done
                 ]==],
-            input_file,
-            output_file
+            input_file --, output_file
         )
     )
 end
@@ -49,7 +50,7 @@ function M.Aichat(input)
     vim.cmd("wincmd L")
 
     local input_file = "/tmp/aichat_input"
-    local output_file = "/tmp/aichat_output"
+    local output_file = "/Users/nik/Library/Application Support/aichat/messages.md"
     local script_file = "/tmp/aichat_script.sh"
     local file = nil
     local script = nil
