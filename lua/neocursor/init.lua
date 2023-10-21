@@ -80,6 +80,7 @@ function M.Aichat(input)
     local bufnr = vim.api.nvim_get_current_buf()
 
     vim.cmd("wincmd n")
+    local aichat_buf = vim.api.nvim_get_current_buf()
     vim.cmd(string.format("wincmd %s", M.side))
 
     local aichat_cfg_dir = M.create_tmp_aichat_dir()
@@ -133,6 +134,7 @@ exec aichat]]
                 util.rmdir(aichat_cfg_dir)
 
                 local orig_win = M.get_visible_window_number(bufnr)
+                vim.api.nvim_buf_delete(aichat_buf, {force = true})
                 M.indent_lines(start_line, end_line, orig_win)
             end,
             stdout_buffered = true,
