@@ -120,12 +120,16 @@ exec aichat]]
         "bash " .. script_file,
         {
             on_exit = function(job_id, exit_code, event)
-                if exit_code == 0 then
-                    local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
-                    M.replace_lines(start_line, end_line, output, bufnr)
-                else
-                    -- print("NNN!!!")
-                    -- vimecho("N :(")
+                if input then
+                    if exit_code == 0 then
+                        local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
+                        M.replace_lines(start_line, end_line, output, bufnr)
+                    else
+                        -- print("NNN!!!")
+                        -- vimecho("N :(")
+                    end
+                    local orig_win = M.get_visible_window_number(bufnr)
+                    M.indent_lines(start_line, end_line, orig_win)
                 end
 
                 -- clean up temporary files
@@ -133,9 +137,7 @@ exec aichat]]
                 os.remove(script_file)
                 util.rmdir(aichat_cfg_dir)
 
-                local orig_win = M.get_visible_window_number(bufnr)
                 vim.api.nvim_buf_delete(aichat_buf, {force = true})
-                M.indent_lines(start_line, end_line, orig_win)
             end,
             stdout_buffered = true,
             stderr_buffered = true
