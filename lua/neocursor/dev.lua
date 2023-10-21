@@ -9,8 +9,8 @@ function unload_namespace(namespace)
     end
 end
 
-unload_namespace('neocursor.')
+unload_namespace("neocursor.")
 
 -- reload it
-package.loaded['neocursor'] = nil
-require('neocursor') -- loads an updated version of module 'modname'
+package.loaded["neocursor"] = nil
+require("neocursor") -- loads an updated version of module 'modname'
