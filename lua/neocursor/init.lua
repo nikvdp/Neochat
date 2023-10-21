@@ -12,18 +12,19 @@ local GetVisualSelection = require("neocursor.util").GetVisualSelection
 local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
 local vimecho = require("neocursor.util").vimecho
 
-function M.gen_aichat_wrapper_script(input_file, output_file)
+function M.gen_aichat_wrapper_script(input_file, options)
+    local message = options.message or "Keep"
     return util.dedent(
         string.format(
             [==[
                 #!/bin/bash
                 aichat < "%s"
                 cols="$(tput cols)"
-                msg="Keep Y/N? "
+                msg="%s"
                 y_color=$(tput setaf 2)
                 n_color=$(tput setaf 1)
                 reset_color=$(tput sgr0)
-                msg_colorized="Keep ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
+                msg_colorized="${msg} ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
                 padding=$((($cols - ${#msg}) / 2))
                 printf "%%${padding}s" ""
                 echo
@@ -37,13 +38,14 @@ function M.gen_aichat_wrapper_script(input_file, output_file)
                     fi
                 done
                 ]==],
-            input_file --, output_file
+            input_file,
+            message
         )
     )
 end
 
 function M.get_openai_api_key()
-    return vim.fn.getenv("OPENAI_KEY")
+    return vim.fn.getenv("OPENAI_API_KEY")
 end
 
 function M.create_tmp_aichat_dir()
@@ -91,7 +93,7 @@ function M.Aichat(input)
     local script = nil
 
     if input then
-        script = M.gen_aichat_wrapper_script(input_file, output_file)
+        script = M.gen_aichat_wrapper_script(input_file, {message = "Insert into chat"})
         file = io.open(input_file, "w")
         -- TODO: generate an alternate wrapper script that doesn't pass in user input
         file:write(input)
