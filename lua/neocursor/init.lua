@@ -116,7 +116,7 @@ function M.aichat_wrapper(args)
             local prompt =
                 table.concat(
                 {
-                    "You are a coding expert. I will provide you with code and instructions, reply with the updated code and nothing else. Do not use markdown backticks (```) in your reply.\n\n Code: \n\n```\n",
+                    "You are a coding expert. I will provide you with code and instructions, reply with the updated code and nothing else. Do no provide any explanation or commentary. Make sure to use a markdown block with language indicated (eg ```python)\n\n Code: \n\n```\n",
                     GetVisualSelection(),
                     "\n```\n\nInstruction: \n\n```\n",
                     args,
