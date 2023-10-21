@@ -118,7 +118,7 @@ exec aichat]]
         {
             on_exit = function(job_id, exit_code, event)
                 if exit_code == 0 then
-                    local output = M.extract_markdown_content(output_file)
+                    local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
                     M.replace_lines(start_line, end_line, output, bufnr)
                 else
                     -- print("NNN!!!")
@@ -133,7 +133,6 @@ exec aichat]]
     )
 end
 
--- Function to replace specified lines in a specified buffer
 function M.replace_lines(start_line, end_line, new_lines, bufnr)
     bufnr = bufnr or 0 -- use the current buffer if none is specified
     vim.api.nvim_buf_set_lines(bufnr, start_line - 1, end_line, false, vim.split(new_lines, "\n"))
@@ -225,6 +224,42 @@ function M.extract_markdown_content(file_path)
     end
 
     return M.extract_last_backtick_value(content)
+end
+
+function M.get_last_aichat_response(file_path)
+    local file = io.open(file_path, "r")
+    local lines = {}
+    local block = {}
+    local block_delim = "--------"
+
+    for line in file:lines() do
+        table.insert(lines, line)
+    end
+
+    file:close()
+
+    local started_block = false
+    local ended_block = false
+    -- iterate through the messages.md file in reverse and extract the contents
+    -- of the last block
+    for i = #lines, 1, -1 do
+        local line = lines[i]
+        if started_block and not ended_block then
+            table.insert(block, line)
+        end
+        if line == block_delim then
+            if not started_block then
+                started_block = true
+            else
+                ended_block = true
+                table.remove(block)
+                break
+            end
+        end
+    end
+
+    local text = table.concat(util.reverse_array(block), "\n")
+    return text
 end
 
 vim.cmd([[

@@ -108,4 +108,23 @@ function util.dedent(str)
     return (str:gsub("\n" .. minPrefix, "\n"):gsub("\n$", ""))
 end
 
+--- Joins the given path segments into a single path.
+-- The directory separator is determined based on the current system.
+-- @param ... The path segments to join.
+-- @return The joined path.
+-- @usage
+-- local path = path_join("/home", "user", "file.txt")
+-- print(path)  -- Outputs: "/home/user/file.txt"
+function util.join_path(...)
+    return table.concat({...}, package.config:sub(1, 1))
+end
+
+function util.reverse_array(arr)
+    local reversed = {}
+    for i = #arr, 1, -1 do
+        table.insert(reversed, arr[i])
+    end
+    return reversed
+end
+
 return util
