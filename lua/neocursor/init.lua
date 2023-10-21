@@ -47,7 +47,7 @@ function M.Aichat(input)
     local bufnr = vim.api.nvim_get_current_buf()
 
     vim.cmd("wincmd n")
-    vim.cmd("wincmd L")
+    vim.cmd(string.format("wincmd %s", M.side))
 
     local input_file = "/tmp/aichat_input"
     local output_file = "/Users/nik/Library/Application Support/aichat/messages.md"
