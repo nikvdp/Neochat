@@ -127,4 +127,32 @@ function util.reverse_array(arr)
     return reversed
 end
 
+function util.rmdir(path)
+    local handle, err = vim.loop.fs_scandir(path)
+    if err then
+        print("Cannot open directory: " .. err)
+        return
+    end
+    if handle then
+        for name, t in vim.loop.fs_scandir_next, handle do
+            local file = path .. "/" .. name
+            if t == "directory" then
+                local ok, err = pcall(util.rmdir, file)
+                if not ok then
+                    print("Error removing directory '" .. file .. "': " .. err)
+                end
+            else
+                local ok, err = pcall(vim.loop.fs_unlink, file)
+                if not ok then
+                    print("Error removing file '" .. file .. "': " .. err)
+                end
+            end
+        end
+        local ok, err = pcall(vim.loop.fs_rmdir, path)
+        if not ok then
+            print("Error removing directory '" .. path .. "': " .. err)
+        end
+    end
+end
+
 return util

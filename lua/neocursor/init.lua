@@ -124,8 +124,11 @@ exec aichat]]
                     -- print("NNN!!!")
                     vimecho("N :(")
                 end
-                os.remove(input_file) -- clean up temporary files
+
+                -- clean up temporary files
+                os.remove(input_file)
                 os.remove(script_file)
+                util.rmdir(aichat_cfg_dir)
             end,
             stdout_buffered = true,
             stderr_buffered = true
