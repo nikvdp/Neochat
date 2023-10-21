@@ -7,35 +7,37 @@ local Job = require "plenary.job"
 local async = require("plenary.async")
 local await = async.await
 local async_void = async.void
+local util = require "neocursor.util"
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
 local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
 local vimecho = require("neocursor.util").vimecho
 
 function M.gen_aichat_wrapper_script(input_file, output_file)
-    return string.format(
-        [==[
-#!/bin/bash
-aichat < "%s" | tee "%s"
-cols="$(tput cols)"
-msg="Keep Y/N? "
-y_color=$(tput setaf 2)
-n_color=$(tput setaf 1)
-reset_color=$(tput sgr0)
-msg_colorized="Keep ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
-padding=$((($cols - ${#msg}) / 2))
-printf "%%${padding}s" ""
-echo -n -e "$msg_colorized"
-while true; do
-    read -r -n 1 key
-    if test "$key" == "Y" || test "$key" == "y"; then
-        exit 0
-    elif test "$key" == "N" || test "$key" == "n"; then
-        exit 1
-    fi
-done
-]==],
-        input_file,
-        output_file
+    return util.dedent(
+        string.format( [==[
+                #!/bin/bash
+                aichat < "%s" | tee "%s"
+                cols="$(tput cols)"
+                msg="Keep Y/N? "
+                y_color=$(tput setaf 2)
+                n_color=$(tput setaf 1)
+                reset_color=$(tput sgr0)
+                msg_colorized="Keep ${y_color}Y${reset_color}/${n_color}N${reset_color}? "
+                padding=$((($cols - ${#msg}) / 2))
+                printf "%%${padding}s" ""
+                echo -n -e "$msg_colorized"
+                while true; do
+                    read -r -n 1 key
+                    if test "$key" == "Y" || test "$key" == "y"; then
+                        exit 0
+                    elif test "$key" == "N" || test "$key" == "n"; then
+                        exit 1
+                    fi
+                done
+                ]==],
+            input_file,
+            output_file
+        )
     )
 end
 
