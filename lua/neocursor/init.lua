@@ -210,18 +210,31 @@ function M.aichat_wrapper(args)
         M.Aichat()
     else
         if string.len(selection) then
-            -- if vim.fn.mode() == "v" or vim.fn.mode() == "V" or vim.fn.mode() == "^V" then
-            -- Visual mode and args, so marshall the visually selected
+            -- In visual mode and args were provided, so marshall the visually selected
             -- text into the prompt
+
             local prompt =
-                table.concat(
-                {
-                    "You are a coding expert. I will provide you with code and instructions, reply with the updated code and nothing else. Do no provide any explanation or commentary. Make sure to use a markdown block with language indicated (eg ```python)\n\n Code: \n\n```\n",
-                    GetVisualSelection(),
-                    "\n```\n\nInstruction: \n\n```\n",
-                    args,
-                    "\n```\n"
-                }
+                string.format(
+                util.dedent(
+                    [[
+            You are a coding expert. I will provide you with code and instructions, 
+            reply with the updated code and nothing else. Do not provide any 
+            explanation or commentary. Make sure to use a markdown block with 
+            language indicated (eg ```python)
+
+            Code:
+            ```
+            %s
+            ```
+
+            Instruction:
+            ```
+            %s
+            ```
+                    ]]
+                ),
+                GetVisualSelection(),
+                args
             )
 
             M.Aichat(prompt)
