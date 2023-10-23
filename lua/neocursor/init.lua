@@ -1,6 +1,6 @@
 local M = {}
 -- Module-level variables
-M.side = "L" -- wincmd sides: H, J, K, or L
+M.side = vim.g.neocursor_side or "L"
 M.bufname = "neocursor"
 
 local util = require "neocursor.util"
