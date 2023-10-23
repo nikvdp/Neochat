@@ -3,10 +3,6 @@ local M = {}
 M.side = "L" -- wincmd sides: H, J, K, or L
 M.bufname = "neocursor"
 
-local Job = require "plenary.job"
-local async = require("plenary.async")
-local await = async.await
-local async_void = async.void
 local util = require "neocursor.util"
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
 local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
@@ -48,26 +44,27 @@ function M.get_openai_api_key()
     return vim.fn.getenv("OPENAI_API_KEY")
 end
 
-function M.create_tmp_aichat_dir()
+function M.create_tmp_aichat_dir(options)
+    options = options or {}
     local tmp_dir = vim.fn.tempname()
     vim.fn.mkdir(tmp_dir, "p")
-    local openai_key = M.get_openai_api_key()
+    local openai_key = options.openai_key or M.get_openai_api_key()
+    local model = options.model or "gpt-4"
     local config_yml =
         string.format(
         util.dedent(
             [==[
-            api_key: %s
-
-            model: gpt-4
-            save: true
-            highlight: true 
-            temperature: 0
-            light_theme: true
-            conversation_first: true
-
+                api_key: "%s"
+                model: "%s"
+                save: true
+                highlight: true 
+                temperature: 0
+                light_theme: true
+                conversation_first: true
             ]==]
         ),
-        openai_key
+        openai_key,
+        model
     )
     local cfg_file = io.open(util.join_path(tmp_dir, "config.yaml"), "w")
     cfg_file:write(config_yml)
@@ -94,7 +91,7 @@ function M.Aichat(input)
     local script = nil
 
     if input then
-        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace with this"})
+        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with this"})
         file = io.open(input_file, "w")
         -- TODO: generate an alternate wrapper script that doesn't pass in user input
         file:write(input)
