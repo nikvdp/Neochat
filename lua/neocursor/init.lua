@@ -205,12 +205,13 @@ function M.replace_lines(start_line, end_line, new_lines, bufnr)
 end
 
 function M.aichat_wrapper(args)
+function M.aichat_wrapper(args, is_visual_mode)
     local selection = GetVisualSelection()
     if args == nil or args == "" then
-        if string.len(selection) then
+        if string.len(selection) and is_visual_mode then
             -- there is a visual selection, so use that as the input
             local chan_id = M.Aichat()
-            -- not ideal, but the defer is needed to prevent the input from 
+            -- not ideal, but the defer is needed to prevent the input from
             -- getting pasted above the aichat chession
             vim.defer_fn(
                 function()
@@ -372,8 +373,11 @@ function M.get_last_aichat_response(file_path)
     return text
 end
 
+-- the line1 =~ line2 is a hack to detect if a range was passed in or not.
+-- when a range is passed in vim sets line1 and line2 to the line numbers of the
+-- range. unfortunately there doesn't seem to be a better way to do this
 vim.cmd([[
-  command! -nargs=* -range Aichat lua require'neocursor'.aichat_wrapper(<q-args>)
+    command! -nargs=* -range Aichat lua require'neocursor'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
 ]])
 
 return M
