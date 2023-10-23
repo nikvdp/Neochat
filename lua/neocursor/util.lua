@@ -1,12 +1,13 @@
 local util = {}
 
-function util.SendToReplTerm(repl_term_chan_id, options)
+function util.SendToTerm(repl_term_chan_id, options)
     if type(options) == "string" then
         options = {text_to_send = options}
     end
     options = options or {}
     local text_to_send = options.text_to_send or ""
     local use_bracketed_paste = options.use_bracketed_paste
+    local curly_wrap = options.curly_wrap or false
     if use_bracketed_paste == nil then
         use_bracketed_paste = true
     end
@@ -27,6 +28,9 @@ function util.SendToReplTerm(repl_term_chan_id, options)
         local bracketed_paste_start = "\27[200~"
         local bracketed_paste_end = "\27[201~\r"
         local join_chr = use_rails_console_extra_newlines and "\r" or ""
+        if curly_wrap then 
+            to_send = table.concat({"{", to_send, "}"}, "\n")
+        end
         to_send = {bracketed_paste_start, to_send, bracketed_paste_end}
         if add_extra_newline_to_bracketed_paste and not string.match(to_send[2], "[\n\r]$") then
             to_send[2] = to_send[2] .. "\r"

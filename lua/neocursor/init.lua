@@ -140,6 +140,7 @@ exec aichat]]
             stderr_buffered = true
         }
     )
+    return term_id
 end
 
 --- Indents lines in a specified window.
@@ -206,8 +207,39 @@ end
 function M.aichat_wrapper(args)
     local selection = GetVisualSelection()
     if args == nil or args == "" then
-        -- No args and not in visual mode, so just open up a chat win
-        M.Aichat()
+        if string.len(selection) then
+            -- there is a visual selection, so use that as the input
+            local chan_id = M.Aichat()
+            -- not ideal, but the defer is needed to prevent the input from 
+            -- getting pasted above the aichat chession
+            vim.defer_fn(
+                function()
+                    util.SendToTerm(
+                        chan_id,
+                        {
+                            text_to_send = string.format(
+                                util.dedent(
+                                    [[
+                            Please explain the following code: 
+
+                            ```
+                            %s
+                            ```
+                                    ]]
+                                ),
+                                selection
+                            ),
+                            -- use_bracketed_paste = false,
+                            curly_wrap = true
+                        }
+                    )
+                end,
+                500
+            )
+        else
+            -- No args and not in visual mode, so just open up a chat win
+            M.Aichat()
+        end
     else
         if string.len(selection) then
             -- In visual mode and args were provided, so marshall the visually selected
