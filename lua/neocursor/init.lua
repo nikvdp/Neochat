@@ -1,7 +1,8 @@
 local M = {}
 -- Module-level variables
 M.side = vim.g.neocursor_side or "L"
-M.bufname = "neocursor"
+M.plugin_name = "cursed.nvim"
+M.bufname = string.format("%s_buf", M.plugin_name)
 
 local util = require "neocursor.util"
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
@@ -204,7 +205,6 @@ function M.replace_lines(start_line, end_line, new_lines, bufnr)
     vim.api.nvim_buf_set_lines(bufnr, start_line - 1, end_line, false, vim.split(new_lines, "\n"))
 end
 
-function M.aichat_wrapper(args)
 function M.aichat_wrapper(args, is_visual_mode)
     local selection = GetVisualSelection()
     if args == nil or args == "" then
@@ -373,11 +373,73 @@ function M.get_last_aichat_response(file_path)
     return text
 end
 
+function M.ensure_aichat_bin_installed()
+    local version_number = "v0.8.10"
+    local base_url =
+        string.format("https://github.com/nikvdp/aichat/releases/download/%s/aichat-%s", version_number, version_number)
+
+    -- Determine OS and architecture
+    local os = vim.loop.os_uname().sysname
+    local arch = vim.loop.os_uname().machine
+
+    -- Construct download URL
+    local aichat_url
+    if os == "Linux" and arch == "x86_64" then
+        aichat_url = base_url .. "-x86_64-unknown-linux-musl.tar.gz"
+    elseif os == "Linux" and arch == "aarch64" then
+        aichat_url = base_url .. "-aarch64-unknown-linux-musl.tar.gz"
+    elseif os == "Darwin" and arch == "x86_64" then
+        aichat_url = base_url .. "-x86_64-apple-darwin.tar.gz"
+    elseif os == "Darwin" and arch == "arm64" then
+        aichat_url = base_url .. "-aarch64-apple-darwin.tar.gz"
+    else
+        print("Unsupported OS or architecture.")
+        return
+    end
+
+    -- Get the path to Neovim's data directory
+    local data_dir = vim.fn.stdpath("data")
+
+    -- Create 'aichat' directory inside the data directory
+    local aichat_dir = data_dir .. "/aichat"
+    vim.fn.mkdir(aichat_dir, "p")
+
+    -- Check if 'aichat' is already downloaded
+    if vim.loop.fs_stat(aichat_dir .. "/aichat") then
+        -- print("'aichat' is already downloaded.")
+    else
+        -- print("'aichat' has been downloaded and made executable.")
+        vim.api.nvim_echo(
+            {{string.format("[%s]: downloading 'aichat' binary...", M.plugin_name), "Question"}},
+            false,
+            {}
+        )
+
+        -- Download 'aichat' from the specified URL
+        vim.fn.system("curl -L -o " .. aichat_dir .. "/aichat.tar.gz " .. aichat_url)
+
+        -- Extract 'aichat' and make it executable
+        vim.fn.system("tar -xzf " .. aichat_dir .. "/aichat.tar.gz -C " .. aichat_dir)
+        vim.fn.system("chmod +x " .. aichat_dir .. "/aichat")
+
+        vim.api.nvim_echo(
+            {{string.format("[%s]: downloading 'aichat' binary... DONE", M.plugin_name), "Question"}},
+            false,
+            {}
+        )
+    end
+
+    -- Add 'aichat' directory to PATH for this vim session
+    vim.env.PATH = vim.env.PATH .. ":" .. aichat_dir
+end
+
 -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
 -- when a range is passed in vim sets line1 and line2 to the line numbers of the
 -- range. unfortunately there doesn't seem to be a better way to do this
 vim.cmd([[
     command! -nargs=* -range Aichat lua require'neocursor'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
 ]])
+
+M.ensure_aichat_bin_installed()
 
 return M
