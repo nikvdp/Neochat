@@ -1,6 +1,16 @@
-local util = {}
+-- Various utility functions live in this module 
 
-function util.SendToTerm(repl_term_chan_id, options)
+local M = {}
+
+--- Sends text to a terminal.
+-- @param repl_term_chan_id The terminal channel ID.
+-- @param options A table with the following fields:
+--   text_to_send: The text to send. If not provided, the visual selection is used.
+--   use_bracketed_paste: If true, uses bracketed paste mode. Default is true.
+--   curly_wrap: If true, wraps the text in curly braces. Default is false.
+--   add_extra_newline_to_bracketed_paste: If true, adds an extra newline to bracketed paste. Default is true.
+--   use_rails_console_extra_newlines: If true, uses extra newlines for Rails console. Default is false.
+function M.SendToTerm(repl_term_chan_id, options)
     if type(options) == "string" then
         options = {text_to_send = options}
     end
@@ -28,7 +38,7 @@ function util.SendToTerm(repl_term_chan_id, options)
         local bracketed_paste_start = "\27[200~"
         local bracketed_paste_end = "\27[201~\r"
         local join_chr = use_rails_console_extra_newlines and "\r" or ""
-        if curly_wrap then 
+        if curly_wrap then
             to_send = table.concat({"{", to_send, "}"}, "\n")
         end
         to_send = {bracketed_paste_start, to_send, bracketed_paste_end}
@@ -39,7 +49,7 @@ function util.SendToTerm(repl_term_chan_id, options)
     end
 end
 
-function util.GetVisualSelectionLineNos()
+function M.GetVisualSelectionLineNos()
     local line_start, line_end
     if vim.fn.mode() == "v" then
         line_start, line_end = vim.fn.getpos("v")[2], vim.fn.getpos(".")[2]
@@ -49,8 +59,8 @@ function util.GetVisualSelectionLineNos()
     return line_start, line_end
 end
 
-function util.GetVisualSelection()
-    local line_start, line_end = util.GetVisualSelectionLineNos()
+function M.GetVisualSelection()
+    local line_start, line_end = M.GetVisualSelectionLineNos()
     local column_start, column_end
 
     if vim.fn.mode() == "v" then
@@ -90,14 +100,14 @@ local function text_to_lines(text)
     return lines
 end
 
-function util.vimecho(text)
+function M.vimecho(text)
     vim.cmd([[echom "]] .. text .. [["]])
 end
 
 -- dedent function similar to python's dedent. from [1], see license in [2]
 -- [1]: https://dev.fandom.com/wiki/Module:Unindent
 -- [2]: see LICENSES.txt in this folder
-function util.dedent(str)
+function M.dedent(str)
     str = str:gsub(" +$", ""):gsub("^ +", "") -- remove spaces at start and end
     local level = math.huge
     local minPrefix = ""
@@ -119,11 +129,11 @@ end
 -- @usage
 -- local path = path_join("/home", "user", "file.txt")
 -- print(path)  -- Outputs: "/home/user/file.txt"
-function util.join_path(...)
+function M.join_path(...)
     return table.concat({...}, package.config:sub(1, 1))
 end
 
-function util.reverse_array(arr)
+function M.reverse_array(arr)
     local reversed = {}
     for i = #arr, 1, -1 do
         table.insert(reversed, arr[i])
@@ -131,7 +141,7 @@ function util.reverse_array(arr)
     return reversed
 end
 
-function util.rmdir(path)
+function M.rmdir(path)
     local handle, err = vim.loop.fs_scandir(path)
     if err then
         print("Cannot open directory: " .. err)
@@ -141,7 +151,7 @@ function util.rmdir(path)
         for name, t in vim.loop.fs_scandir_next, handle do
             local file = path .. "/" .. name
             if t == "directory" then
-                local ok, err = pcall(util.rmdir, file)
+                local ok, err = pcall(M.rmdir, file)
                 if not ok then
                     print("Error removing directory '" .. file .. "': " .. err)
                 end
@@ -159,4 +169,13 @@ function util.rmdir(path)
     end
 end
 
-return util
+-- return true if cursor in visual mode.
+function M.is_visual_mode()
+    local mode_info = vim.api.nvim_get_mode()
+    local mode = mode_info["mode"]
+
+    -- The mode will be 'v', 'V', or '^V' for visual, visual line, and visual block mode, respectively
+    return mode == "v" or mode == "V" or mode == "^V"
+end
+
+return M
