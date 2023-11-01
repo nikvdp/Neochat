@@ -118,18 +118,25 @@ function M.Aichat(input)
     local script = nil
 
     if input then
-        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
-        file = io.open(input_file, "w")
-        -- TODO: generate an alternate wrapper script that doesn't pass in user input
-        file:write(input)
-        file:close()
-        local file = nil
-        if input_file ~= nil then
+        if M.aichat_buf and M.aichat_term_id then
+            -- this means an aichat buf is already active, so send the visual selection/input into it
+            util.SendToTerm(M.aichat_term_id, input)
+        else
+            -- if we have a visual selection, use that as input
+            script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
             file = io.open(input_file, "w")
+            -- TODO: generate an alternate wrapper script that doesn't pass in user input
             file:write(input)
             file:close()
+            local file = nil
+            if input_file ~= nil then
+                file = io.open(input_file, "w")
+                file:write(input)
+                file:close()
+            end
         end
     else
+        -- no input provided, start a new chat
         script = [[
 #!/bin/bash
 exec aichat]]
