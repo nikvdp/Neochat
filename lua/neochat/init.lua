@@ -297,22 +297,8 @@ function M.aichat_wrapper(args, is_visual_mode)
     end
 end
 
-function M.get_buf_text(bufnr)
-    -- bufnr is the buffer number. If nil, the current buffer is used.
-    bufnr = bufnr or vim.api.nvim_get_current_buf()
-
-    -- Get the number of lines in the buffer
-    local line_count = vim.api.nvim_buf_line_count(bufnr)
-
-    -- Get all lines from the buffer
-    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, line_count, false)
-
-    -- Join all lines into a single string
-    local text = table.concat(lines, "\n")
-
-    return text
-end
-
+-- return the contents of the last backtick enclosed chunk from
+-- the given markdown
 function M.extract_last_backtick_value(content)
     local last_block = nil
     local pattern = "```.-\n(.-)```"

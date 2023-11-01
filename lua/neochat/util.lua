@@ -178,4 +178,20 @@ function M.is_visual_mode()
     return mode == "v" or mode == "V" or mode == "^V"
 end
 
+function M.get_buf_text(bufnr)
+    -- bufnr is the buffer number. If nil, the current buffer is used.
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+
+    -- Get the number of lines in the buffer
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+
+    -- Get all lines from the buffer
+    local lines = vim.api.nvim_buf_get_lines(bufnr, 0, line_count, false)
+
+    -- Join all lines into a single string
+    local text = table.concat(lines, "\n")
+
+    return text
+end
+
 return M
