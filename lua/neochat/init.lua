@@ -95,56 +95,47 @@ function M.create_tmp_aichat_dir(options)
     return tmp_dir
 end
 
+function M.write_to_file(filename, content)
+    local file = io.open(filename, "w")
+    file:write(content)
+    file:close()
+end
+
+function M.is_aichat_active()
+    if M.aichat_buf and M.aichat_term_id then
+        return true
+    end
+end
+
 function M.Aichat(input)
     if not M.get_openai_api_key() then
         vimecho("Please set $OPENAI_API_KEY first!")
         return nil
     end
+
     local start_line, end_line = GetVisualSelectionLineNos()
     local bufnr = vim.api.nvim_get_current_buf()
-
-    vim.cmd("wincmd n")
-    M.aichat_buf = vim.api.nvim_get_current_buf()
-    vim.cmd(string.format("wincmd %s", M.side))
+    local script, script_file, input_file, output_file
 
     local aichat_cfg_dir = M.create_tmp_aichat_dir()
     vim.fn.setenv("AICHAT_CONFIG_DIR", aichat_cfg_dir)
-    local input_file = "/tmp/aichat_input"
-    -- aichat writes it's msg history into messages.md, so we can read
-    -- the chat output from here later
-    local output_file = util.join_path(aichat_cfg_dir, "messages.md")
-    local script_file = "/tmp/aichat_script.sh"
-    local file = nil
-    local script = nil
+    script_file = "/tmp/aichat_script.sh"
 
     if input then
-        if M.aichat_buf and M.aichat_term_id then
-            -- this means an aichat buf is already active, so send the visual selection/input into it
-            util.SendToTerm(M.aichat_term_id, input)
-        else
-            -- if we have a visual selection, use that as input
-            script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
-            file = io.open(input_file, "w")
-            -- TODO: generate an alternate wrapper script that doesn't pass in user input
-            file:write(input)
-            file:close()
-            local file = nil
-            if input_file ~= nil then
-                file = io.open(input_file, "w")
-                file:write(input)
-                file:close()
-            end
-        end
+        input_file = "/tmp/aichat_input"
+        output_file = util.join_path(aichat_cfg_dir, "messages.md")
+        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
+        M.write_to_file(input_file, input)
     else
-        -- no input provided, start a new chat
         script = [[
 #!/bin/bash
 exec aichat]]
     end
 
-    file = io.open(script_file, "w")
-    file:write(script)
-    file:close()
+    M.write_to_file(script_file, script)
+    vim.cmd("wincmd n")
+    M.aichat_buf = vim.api.nvim_get_current_buf()
+    vim.cmd(string.format("wincmd %s", M.side))
 
     local term_id =
         vim.fn.termopen(
@@ -153,14 +144,9 @@ exec aichat]]
             on_exit = function(job_id, exit_code, event)
                 M.aichat_buf = nil
                 M.aichat_term_id = nil
-                if input then
-                    if exit_code == 0 then
-                        local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
-                        M.replace_lines(start_line, end_line, output, bufnr)
-                    else
-                        -- print("NNN!!!")
-                        -- vimecho("N :(")
-                    end
+                if input and exit_code == 0 then
+                    local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
+                    M.replace_lines(start_line, end_line, output, bufnr)
                     local orig_win = M.get_visible_window_number(bufnr)
                     M.indent_lines(start_line, end_line, orig_win)
                 end
@@ -176,6 +162,7 @@ exec aichat]]
             stderr_buffered = true
         }
     )
+
     if not M.aichat_buf then
         vim.api.nvim_buf_set_name(M.aichat_buf, M.buf_name)
     end
