@@ -235,37 +235,45 @@ function M.aichat_wrapper(args, is_visual_mode)
     local selection = GetVisualSelection()
     if args == nil or args == "" then
         if string.len(selection) and is_visual_mode then
-            -- there is a visual selection, so use that as the input
-            local chan_id = M.Aichat()
-            -- not ideal, but the defer is needed to prevent the input from
-            -- getting pasted above the aichat chession
-            vim.defer_fn(
-                function()
-                    util.SendToTerm(
-                        chan_id,
-                        {
-                            text_to_send = string.format(
-                                util.dedent(
-                                    [[
+            if M.is_aichat_active() then
+                util.SendToTerm(M.aichat_term_id, selection)
+            else
+                -- there is a visual selection, so use that as the input
+                local chan_id = M.Aichat()
+                -- not ideal, but the defer is needed to prevent the input from
+                -- getting pasted above the aichat chession
+                vim.defer_fn(
+                    function()
+                        util.SendToTerm(
+                            chan_id,
+                            {
+                                text_to_send = string.format(
+                                    util.dedent(
+                                        [[
                             Please explain the following code: 
 
                             ```
                             %s
                             ```
                                     ]]
+                                    ),
+                                    selection
                                 ),
-                                selection
-                            ),
-                            -- use_bracketed_paste = false,
-                            curly_wrap = true
-                        }
-                    )
-                end,
-                500
-            )
+                                -- use_bracketed_paste = false,
+                                curly_wrap = true
+                            }
+                        )
+                    end,
+                    500
+                )
+            end
         else
             -- No args and not in visual mode, so just open up a chat win
-            M.Aichat()
+            if M.is_aichat_active() then
+                util.focus_buffer(M.aichat_buf)
+            else
+                M.Aichat()
+            end
         end
     else
         if string.len(selection) then
@@ -446,12 +454,12 @@ function M.ensure_aichat_bin_installed()
 end
 
 function M.set_vim_cmds(cmd_root)
-    -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
-    -- when a range is passed in vim sets line1 and line2 to the line numbers of the
-    -- range. unfortunately there doesn't seem to be a better way to do this
     cmd_root = cmd_root:sub(1, 1):upper() .. cmd_root:sub(2) -- ensure cmd_root is capitalized
     local set_cmd_cmd =
         string.format(
+        -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
+        -- when a range is passed in vim sets line1 and line2 to the line numbers of the
+        -- range. unfortunately there doesn't seem to be a better way to do this
         [[
     command! -nargs=* -range %s lua require'%s'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
     ]],

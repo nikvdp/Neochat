@@ -194,4 +194,28 @@ function M.get_buf_text(bufnr)
     return text
 end
 
+function M.focus_buffer(bufid)
+    -- Get the list of all tabpages
+    local tabpages = vim.api.nvim_list_tabpages()
+
+    -- Iterate over each tabpage
+    for _, tabid in ipairs(tabpages) do
+        -- Get the list of all windows in the current tabpage
+        local winids = vim.api.nvim_tabpage_list_wins(tabid)
+
+        -- Iterate over each window
+        for _, winid in ipairs(winids) do
+            -- Get the buffer ID for the current window
+            local winbuf = vim.api.nvim_win_get_buf(winid)
+
+            -- If the buffer IDs match, set the current tabpage and window to these
+            if winbuf == bufid then
+                vim.api.nvim_set_current_tabpage(tabid)
+                vim.api.nvim_set_current_win(winid)
+                return
+            end
+        end
+    end
+end
+
 return M
