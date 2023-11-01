@@ -104,7 +104,7 @@ function M.Aichat(input)
     local bufnr = vim.api.nvim_get_current_buf()
 
     vim.cmd("wincmd n")
-    local aichat_buf = vim.api.nvim_get_current_buf()
+    M.aichat_buf = vim.api.nvim_get_current_buf()
     vim.cmd(string.format("wincmd %s", M.side))
 
     local aichat_cfg_dir = M.create_tmp_aichat_dir()
@@ -144,6 +144,8 @@ exec aichat]]
         "bash " .. script_file,
         {
             on_exit = function(job_id, exit_code, event)
+                M.aichat_buf = nil
+                M.aichat_term_id = nil
                 if input then
                     if exit_code == 0 then
                         local output = M.extract_last_backtick_value(M.get_last_aichat_response(output_file))
@@ -167,7 +169,10 @@ exec aichat]]
             stderr_buffered = true
         }
     )
-    vim.api.nvim_buf_set_name(aichat_buf, M.buf_name)
+    if not M.aichat_buf then
+        vim.api.nvim_buf_set_name(M.aichat_buf, M.buf_name)
+    end
+    M.aichat_term_id = term_id
     return term_id
 end
 
