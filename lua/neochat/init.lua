@@ -60,7 +60,11 @@ function M.gen_aichat_wrapper_script(input_file, options)
 end
 
 function M.get_openai_api_key()
-    return vim.fn.getenv("OPENAI_API_KEY")
+    local key = vim.fn.getenv("OPENAI_API_KEY")
+    if not key or key == vim.NIL then
+        return nil
+    end
+    return key
 end
 
 function M.create_tmp_aichat_dir(options)
@@ -92,6 +96,10 @@ function M.create_tmp_aichat_dir(options)
 end
 
 function M.Aichat(input)
+    if not M.get_openai_api_key() then
+        vimecho("Please set $OPENAI_API_KEY first!")
+        return nil
+    end
     local start_line, end_line = GetVisualSelectionLineNos()
     local bufnr = vim.api.nvim_get_current_buf()
 
