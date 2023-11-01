@@ -156,7 +156,7 @@ exec aichat]]
                 os.remove(script_file)
                 util.rmdir(aichat_cfg_dir)
 
-                vim.api.nvim_buf_delete(aichat_buf, {force = true})
+                vim.api.nvim_buf_delete(M.aichat_buf, {force = true})
             end,
             stdout_buffered = true,
             stderr_buffered = true
