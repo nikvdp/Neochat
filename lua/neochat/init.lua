@@ -1,8 +1,8 @@
 local M = {}
 -- Module-level variables
-M.plugin_name = "curse.nvim"
+M.plugin_name = "neochat"
 
-local util = require "neocursor.util"
+local util = require "neochat.util"
 local GetVisualSelection = util.GetVisualSelection
 local GetVisualSelectionLineNos = util.GetVisualSelectionLineNos
 local vimecho = util.vimecho -- for debugging
@@ -12,7 +12,7 @@ function M.init(cfg)
     local default_cfg = {
         side = "L",
         openai_key = M.get_openai_api_key(),
-        cmd_name = "Curse",
+        cmd_name = "Neochat",
         buf_name = string.format("%s_buf", M.plugin_name)
     }
     cfg = cfg or default_cfg
@@ -455,12 +455,14 @@ function M.set_vim_cmds(cmd_root)
     -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
     -- when a range is passed in vim sets line1 and line2 to the line numbers of the
     -- range. unfortunately there doesn't seem to be a better way to do this
+    cmd_root = cmd_root:sub(1, 1):upper() .. cmd_root:sub(2) -- ensure cmd_root is capitalized
     vim.cmd(
         string.format(
             [[
-command! -nargs=* -range %s lua require'neocursor'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
-]],
-            cmd_root
+    command! -nargs=* -range %s lua require'%s'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
+    ]],
+            cmd_root,
+            plugin_name
         )
     )
 end

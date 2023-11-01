@@ -1,4 +1,4 @@
--- Various utility functions live in this module 
+-- Various utility functions live in this module
 
 local M = {}
 

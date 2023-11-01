@@ -1,5 +1,5 @@
 -- open this and do `:luafile %` to reload the plugin during dev
-local plugin_namespace = "neocursor"
+local plugin_namespace = "neochat"
 
 -- Unload all modules under the given namespace
 function unload_namespace(namespace)
