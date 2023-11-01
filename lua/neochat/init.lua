@@ -110,7 +110,7 @@ function M.Aichat(input)
     local script = nil
 
     if input then
-        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with this"})
+        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
         file = io.open(input_file, "w")
         -- TODO: generate an alternate wrapper script that doesn't pass in user input
         file:write(input)
@@ -159,6 +159,7 @@ exec aichat]]
             stderr_buffered = true
         }
     )
+    vim.api.nvim_buf_set_name(aichat_buf, M.buf_name)
     return term_id
 end
 
