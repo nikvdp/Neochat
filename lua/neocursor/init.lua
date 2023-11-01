@@ -1,13 +1,31 @@
 local M = {}
 -- Module-level variables
-M.side = vim.g.neocursor_side or "L"
-M.plugin_name = "cursed.nvim"
-M.bufname = string.format("%s_buf", M.plugin_name)
+M.plugin_name = "curse.nvim"
 
 local util = require "neocursor.util"
 local GetVisualSelection = require("neocursor.util").GetVisualSelection
 local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
 local vimecho = require("neocursor.util").vimecho
+
+-- initialize and set config for neocursor
+function M.init(cfg)
+    local default_cfg = {
+        side = "L",
+        openai_key = M.get_openai_api_key(),
+        cmd_name = "Curse",
+        buf_name = string.format("%s_buf", M.plugin_name)
+    }
+    cfg = cfg or default_cfg
+    for key, value in pairs(default_cfg) do
+        if cfg[key] ~= nil then
+            M[key] = cfg[key]
+        else
+            M[key] = value
+        end
+    end
+    M.set_vim_cmds(M.cmd_name)
+    M.ensure_aichat_bin_installed()
+end
 
 function M.gen_aichat_wrapper_script(input_file, options)
     local message = options.message or "Keep"
@@ -433,13 +451,20 @@ function M.ensure_aichat_bin_installed()
     vim.env.PATH = vim.env.PATH .. ":" .. aichat_dir
 end
 
--- the line1 =~ line2 is a hack to detect if a range was passed in or not.
--- when a range is passed in vim sets line1 and line2 to the line numbers of the
--- range. unfortunately there doesn't seem to be a better way to do this
-vim.cmd([[
-    command! -nargs=* -range Aichat lua require'neocursor'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
-]])
+function M.set_vim_cmds(cmd_root)
+    -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
+    -- when a range is passed in vim sets line1 and line2 to the line numbers of the
+    -- range. unfortunately there doesn't seem to be a better way to do this
+    vim.cmd(
+        string.format(
+            [[
+command! -nargs=* -range %s lua require'neocursor'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
+]],
+            cmd_root
+        )
+    )
+end
 
-M.ensure_aichat_bin_installed()
+M.init()
 
 return M
