@@ -3,9 +3,9 @@ local M = {}
 M.plugin_name = "curse.nvim"
 
 local util = require "neocursor.util"
-local GetVisualSelection = require("neocursor.util").GetVisualSelection
-local GetVisualSelectionLineNos = require("neocursor.util").GetVisualSelectionLineNos
-local vimecho = require("neocursor.util").vimecho
+local GetVisualSelection = util.GetVisualSelection
+local GetVisualSelectionLineNos = util.GetVisualSelectionLineNos
+local vimecho = util.vimecho -- for debugging
 
 -- initialize and set config for neocursor
 function M.init(cfg)
