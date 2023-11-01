@@ -456,15 +456,15 @@ function M.set_vim_cmds(cmd_root)
     -- when a range is passed in vim sets line1 and line2 to the line numbers of the
     -- range. unfortunately there doesn't seem to be a better way to do this
     cmd_root = cmd_root:sub(1, 1):upper() .. cmd_root:sub(2) -- ensure cmd_root is capitalized
-    vim.cmd(
+    local set_cmd_cmd =
         string.format(
-            [[
+        [[
     command! -nargs=* -range %s lua require'%s'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
     ]],
-            cmd_root,
-            plugin_name
-        )
+        cmd_root,
+        M.plugin_name
     )
+    vim.cmd(set_cmd_cmd)
 end
 
 M.init()
