@@ -107,13 +107,32 @@ function M.is_aichat_active()
     end
 end
 
-function M.Aichat(input)
+-- Launch aichat in a terminal buffer and process output
+--
+-- @param input The input for the AI chat.
+-- @param options A table that can contain the following fields:
+--      prompt_msg: A string that replaces the original selection with the provided string. Default is "Replace original selection with above".
+--      start_line: The starting line number for the selection. If not provided, it will be determined by the function GetVisualSelectionLineNos().
+--      end_line: The ending line number for the selection. If not provided, it will be determined by the function GetVisualSelectionLineNos().
+function M.Aichat(input, options)
+    if type(options) == "string" then
+        options = {prompt_msg = options}
+    else
+        options = options or {}
+    end
+    local prompt_msg = options.prompt_msg or "Replace original selection with above"
+    local start_line = options.start_line
+    local end_line = options.end_line
+
+    if not start_line or not end_line then
+        start_line, end_line = GetVisualSelectionLineNos()
+    end
+
     if not M.get_openai_api_key() then
         vimecho("Please set $OPENAI_API_KEY first!")
         return nil
     end
 
-    local start_line, end_line = GetVisualSelectionLineNos()
     local bufnr = vim.api.nvim_get_current_buf()
     local script, script_file, input_file, output_file
 
@@ -124,7 +143,7 @@ function M.Aichat(input)
     if input then
         input_file = "/tmp/aichat_input"
         output_file = util.join_path(aichat_cfg_dir, "messages.md")
-        script = M.gen_aichat_wrapper_script(input_file, {message = "Replace original selection with above"})
+        script = M.gen_aichat_wrapper_script(input_file, {message = prompt_msg})
         M.write_to_file(input_file, input)
     else
         script = [[
@@ -156,7 +175,6 @@ exec aichat]]
                 os.remove(input_file)
                 os.remove(script_file)
                 util.rmdir(aichat_cfg_dir)
-
             end,
             stdout_buffered = true,
             stderr_buffered = true
