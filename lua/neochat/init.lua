@@ -236,7 +236,7 @@ function M.replace_lines(start_line, end_line, new_lines, bufnr)
     vim.api.nvim_buf_set_lines(bufnr, start_line - 1, end_line, false, vim.split(new_lines, "\n"))
 end
 
-function M.aichat_wrapper(args, is_visual_mode)
+function M.aichat_cmd_handler(args, is_visual_mode)
     local selection = GetVisualSelection()
     if args == nil or args == "" then
         if string.len(selection) and is_visual_mode then
@@ -466,7 +466,7 @@ function M.set_vim_cmds(cmd_root)
         -- when a range is passed in vim sets line1 and line2 to the line numbers of the
         -- range. unfortunately there doesn't seem to be a better way to do this
         [[
-    command! -nargs=* -range %s lua require'%s'.aichat_wrapper(<q-args>, <line1> ~= <line2>)
+    command! -nargs=* -range %s lua require'%s'.aichat_cmd_handler(<q-args>, <line1> ~= <line2>)
     ]],
         cmd_root,
         M.plugin_name
