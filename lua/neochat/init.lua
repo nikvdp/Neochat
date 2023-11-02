@@ -303,17 +303,21 @@ function M.aichat_cmd_handler(args, is_visual_mode)
             -- In visual mode and args were provided, so marshall the visually selected
             -- text into the prompt
 
+            local filetype = vim.api.nvim_buf_get_option(0, "filetype")
             local prompt =
                 string.format(
                 util.dedent(
                     [[
-            You are a coding expert. I will provide you with code and instructions, 
-            reply with the updated code and nothing else. Do not provide any 
-            explanation or commentary. Make sure to use a markdown block with 
-            language indicated (eg ```python)
+            You are a coding expert. I will provide you with code and instructions,
+            reply with the updated code and nothing else. Do not provide any
+            explanation or commentary. Make sure to use a markdown block with
+            language indicated (eg ```python). Do not add closing or completion 
+            code, the code you write will be inserted in place in the user's 
+            editor, so adding extra closing markers (eg `}` or `end`) may break 
+            their code.
 
             Code:
-            ```
+            ```%s
             %s
             ```
 
@@ -323,6 +327,7 @@ function M.aichat_cmd_handler(args, is_visual_mode)
             ```
                     ]]
                 ),
+                filetype,
                 GetVisualSelection(),
                 args
             )
