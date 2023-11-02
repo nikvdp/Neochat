@@ -142,6 +142,7 @@ exec aichat]]
         "bash " .. script_file,
         {
             on_exit = function(job_id, exit_code, event)
+                vim.api.nvim_buf_delete(M.aichat_buf, {force = true})
                 M.aichat_buf = nil
                 M.aichat_term_id = nil
                 if input and exit_code == 0 then
@@ -156,7 +157,6 @@ exec aichat]]
                 os.remove(script_file)
                 util.rmdir(aichat_cfg_dir)
 
-                vim.api.nvim_buf_delete(M.aichat_buf, {force = true})
             end,
             stdout_buffered = true,
             stderr_buffered = true
