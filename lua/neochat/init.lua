@@ -481,20 +481,92 @@ function M.ensure_aichat_bin_installed()
     vim.env.PATH = vim.env.PATH .. ":" .. aichat_dir
 end
 
+function M.aichat_gen_cmd_handler(args)
+    if args == nil or args == "" then
+        vimecho("Enter a prompt to generate with!")
+        return nil
+    end
+
+    local cur_line = vim.api.nvim_win_get_cursor(0)[1]
+    local total_lines = vim.fn.line("$")
+
+    local context_lines = 10
+    local start_line = math.max(1, cur_line - context_lines)
+    local end_line = math.min(total_lines, cur_line + context_lines)
+
+    local lines = vim.fn.getline(start_line, end_line)
+    local preceding_lines = table.concat(vim.fn.getline(start_line, cur_line - 1), "\n") or ""
+    local following_lines = table.concat(vim.fn.getline(cur_line + 1, end_line), "\n") or ""
+
+    local filetype = vim.api.nvim_buf_get_option(0, "filetype")
+    local prompt =
+        string.format(
+        util.dedent(
+            [[
+    You are a coding expert. I will provide you with context from
+    a user's text editor (%s lines before and after the cursor) as well
+    as a prompt from the user explaining what code they would like generated.
+    Reply with new code as per the user's specifications and nothing else. Do
+    not include any of the context code, it is provided only for your reference.
+    Do not provide any explanation or commentary aside from comments
+    in the code you generate. Make sure to use a markdown block with language 
+    indicated (eg ```python). 
+
+    Preceding context:
+    ```%s
+    %s
+    ```
+
+    Following context:
+    ```%s
+    %s
+    ```
+
+    Instructions:
+    ```
+    %s
+    ```
+    ]]
+        ),
+        context_lines,
+        filetype,
+        preceding_lines,
+        filetype,
+        following_lines,
+        args
+    )
+    -- vim.fn.setreg("a", prompt)
+    M.Aichat(
+        prompt,
+        {
+            prompt_msg = "Insert generated code",
+            start_line = cur_line,
+            end_line = cur_line
+        }
+    )
+end
+
 function M.set_vim_cmds(cmd_root)
     cmd_root = cmd_root:sub(1, 1):upper() .. cmd_root:sub(2) -- ensure cmd_root is capitalized
-    local set_cmd_cmd =
+    vim.cmd(
         string.format(
-        -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
-        -- when a range is passed in vim sets line1 and line2 to the line numbers of the
-        -- range. unfortunately there doesn't seem to be a better way to do this
-        [[
-    command! -nargs=* -range %s lua require'%s'.aichat_cmd_handler(<q-args>, <line1> ~= <line2>)
-    ]],
-        cmd_root,
-        M.plugin_name
+            -- the line1 =~ line2 is a hack to detect if a range was passed in or not.
+            -- when a range is passed in vim sets line1 and line2 to the line numbers of the
+            -- range. unfortunately there doesn't seem to be a better way to do this
+            "command! -nargs=* -range %s lua require'%s'.aichat_cmd_handler(<q-args>, <line1> ~= <line2>)",
+            cmd_root,
+            M.plugin_name
+        )
     )
-    vim.cmd(set_cmd_cmd)
+
+    vim.cmd(
+        string.format(
+            -- command to start in generate mode
+            "command! -nargs=* %sGen lua require'%s'.aichat_gen_cmd_handler(<q-args>)",
+            cmd_root,
+            M.plugin_name
+        )
+    )
 end
 
 M.init()
