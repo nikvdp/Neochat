@@ -187,6 +187,7 @@ exec aichat]]
     M.aichat_term_id = term_id
 
     -- Set autocmd to enter insert mode when window is focused
+    vim.api.nvim_command("startinsert")
     vim.api.nvim_command("autocmd BufEnter <buffer=" .. M.aichat_buf .. "> startinsert")
     vim.api.nvim_buf_set_keymap(M.aichat_buf, "t", "<C-w>", "<C-\\><C-n><C-w>", {noremap = true, silent = true})
 
