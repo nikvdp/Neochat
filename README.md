@@ -4,6 +4,12 @@ Neochat is a neovim plugin that integrates a fork of
 [sigoden/aichat](https://github.com/sigoden/aichat) (an excellent CLI interface
 to ChatGPT) into Neovim to Get a [cursor.sh](https://cursor.sh)-like experience.
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=JXhXuhAqkrY" target="_blank">
+    <img width="75%" src="https://persistory.s3.us-west-1.wasabisys.com/share/neochat%20intro%20thumb%20(1).jpg"/>
+  </a>
+</p>
+
 
 ### Features
 - A full featured ChatGPT client running inside neovim, complete with syntax highlighting and streaming
