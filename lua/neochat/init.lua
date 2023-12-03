@@ -479,7 +479,7 @@ function M.ensure_aichat_bin_installed()
     end
 
     -- Add 'aichat' directory to PATH for this vim session
-    vim.env.PATH = vim.env.PATH .. ":" .. aichat_dir
+    vim.env.PATH = aichat_dir .. ":" .. vim.env.PATH
 end
 
 function M.aichat_gen_cmd_handler(args)
