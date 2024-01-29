@@ -6,6 +6,8 @@ local util = require "neochat.util"
 local GetVisualSelection = util.GetVisualSelection
 local GetVisualSelectionLineNos = util.GetVisualSelectionLineNos
 local vimecho = util.vimecho -- for debugging
+local data_dir = vim.fn.stdpath("data")
+local aichat_dir = data_dir .. "/aichat"
 
 -- initialize and set config for neocursor
 function M.init(cfg)
@@ -160,6 +162,7 @@ exec aichat]]
         vim.fn.termopen(
         "bash " .. script_file,
         {
+            env = {["PATH"] = aichat_dir .. ":" .. vim.fn.getenv("PATH")},
             on_exit = function(job_id, exit_code, event)
                 vim.api.nvim_buf_delete(M.aichat_buf, {force = true})
                 M.aichat_buf = nil
@@ -446,13 +449,7 @@ function M.ensure_aichat_bin_installed()
         return
     end
 
-    -- Get the path to Neovim's data directory
-    local data_dir = vim.fn.stdpath("data")
-
-    -- Create 'aichat' directory inside the data directory
-    local aichat_dir = data_dir .. "/aichat"
     vim.fn.mkdir(aichat_dir, "p")
-
     -- Check if 'aichat' is already downloaded
     if vim.loop.fs_stat(aichat_dir .. "/aichat") then
         -- print("'aichat' is already downloaded.")
@@ -477,9 +474,6 @@ function M.ensure_aichat_bin_installed()
             {}
         )
     end
-
-    -- Add 'aichat' directory to PATH for this vim session
-    vim.env.PATH = aichat_dir .. ":" .. vim.env.PATH
 end
 
 function M.aichat_gen_cmd_handler(args)
